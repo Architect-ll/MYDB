@@ -11,13 +11,13 @@ import top.guoziyang.mydb.backend.utils.Panic;
 import top.guoziyang.mydb.common.Error;
 
 public interface TransactionManager {
-    long begin();
-    void commit(long xid);
-    void abort(long xid);
-    boolean isActive(long xid);
-    boolean isCommitted(long xid);
-    boolean isAborted(long xid);
-    void close();
+    long begin(); // 开启一个新事务
+    void commit(long xid); // 提交一个事务
+    void abort(long xid); // 取消一个事务
+    boolean isActive(long xid); // 查询一个事务的状态是否是正在进行的状态
+    boolean isCommitted(long xid); // 查询一个事务的状态是否是已提交
+    boolean isAborted(long xid); // 查询一个事务的状态是否是已取消
+    void close(); // 关闭TM
 
     public static TransactionManagerImpl create(String path) {
         File f = new File(path+TransactionManagerImpl.XID_SUFFIX);

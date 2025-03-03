@@ -25,7 +25,7 @@ public class TransactionManagerImpl implements TransactionManager {
 
     // 超级事务，永远为commited状态
     public static final long SUPER_XID = 0;
-
+    // XID 文件后缀
     static final String XID_SUFFIX = ".xid";
     
     private RandomAccessFile file;
