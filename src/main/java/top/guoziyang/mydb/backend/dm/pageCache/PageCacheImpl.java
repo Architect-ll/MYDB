@@ -58,18 +58,27 @@ public class PageCacheImpl extends AbstractCache<Page> implements PageCache {
      */
     @Override
     protected Page getForCache(long key) throws Exception {
-        int pgno = (int)key;
+        // 将key转换为页码
+        int pgno = (int) key;
+        // 计算页码对应的偏移量
         long offset = PageCacheImpl.pageOffset(pgno);
 
+        // 分配一个大小为PAGE_SIZE的ByteBuffer
         ByteBuffer buf = ByteBuffer.allocate(PAGE_SIZE);
+        // 锁定文件，确保线程安全
         fileLock.lock();
         try {
+            // 设置文件通道的位置为计算出的偏移量
             fc.position(offset);
+            // 从文件通道读取数据到ByteBuffer
             fc.read(buf);
-        } catch(IOException e) {
+        } catch (IOException e) {
+            // 如果发生异常，调用Panic.panic方法处理
             Panic.panic(e);
         }
+        // 无论是否发生异常，都要解锁
         fileLock.unlock();
+        // 使用读取到的数据、页码和当前对象创建一个新的PageImpl对象并返回
         return new PageImpl(pgno, buf.array(), this);
     }
 
@@ -90,19 +99,19 @@ public class PageCacheImpl extends AbstractCache<Page> implements PageCache {
     }
 
     private void flush(Page pg) {
-        int pgno = pg.getPageNumber();
-        long offset = pageOffset(pgno);
+        int pgno = pg.getPageNumber(); // 获取Page的页码
+        long offset = pageOffset(pgno); // 计算Page在文件中的偏移量
 
-        fileLock.lock();
+        fileLock.lock(); // 加锁，确保线程安全
         try {
-            ByteBuffer buf = ByteBuffer.wrap(pg.getData());
-            fc.position(offset);
-            fc.write(buf);
-            fc.force(false);
-        } catch(IOException e) {
-            Panic.panic(e);
+            ByteBuffer buf = ByteBuffer.wrap(pg.getData()); // 将Page的数据包装成ByteBuffer
+            fc.position(offset); // 设置文件通道的位置
+            fc.write(buf); // 将数据写入到文件中
+            fc.force(false); // 强制将数据从操作系统的缓存刷新到磁盘
+        } catch (IOException e) {
+            Panic.panic(e); // 如果发生异常，调用Panic.panic方法处理
         } finally {
-            fileLock.unlock();
+            fileLock.unlock(); // 最后，无论是否发生异常，都要解锁
         }
     }
 

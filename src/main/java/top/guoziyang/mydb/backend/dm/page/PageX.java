@@ -52,18 +52,18 @@ public class PageX {
 
     // 将raw插入pg中的offset位置，并将pg的offset设置为较大的offset
     public static void recoverInsert(Page pg, byte[] raw, short offset) {
-        pg.setDirty(true);
-        System.arraycopy(raw, 0, pg.getData(), offset, raw.length);
+        pg.setDirty(true); // 将pg的dirty标志设置为true，表示pg的数据已经被修改
+        System.arraycopy(raw, 0, pg.getData(), offset, raw.length); // 将raw的数据复制到pg的数据中的offset位置
 
-        short rawFSO = getFSO(pg.getData());
-        if(rawFSO < offset + raw.length) {
-            setFSO(pg.getData(), (short)(offset+raw.length));
+        short rawFSO = getFSO(pg.getData()); // 获取pg的当前空闲空间偏移量
+        if (rawFSO < offset + raw.length) { // 如果当前的空闲空间偏移量小于offset + raw.length
+            setFSO(pg.getData(), (short) (offset + raw.length)); // 将pg的空闲空间偏移量设置为offset + raw.length
         }
     }
 
     // 将raw插入pg中的offset位置，不更新update
     public static void recoverUpdate(Page pg, byte[] raw, short offset) {
-        pg.setDirty(true);
-        System.arraycopy(raw, 0, pg.getData(), offset, raw.length);
+        pg.setDirty(true); // 将pg的dirty标志设置为true，表示pg的数据已经被修改
+        System.arraycopy(raw, 0, pg.getData(), offset, raw.length); // 将raw的数据复制到pg的数据中的offset位置
     }
 }
