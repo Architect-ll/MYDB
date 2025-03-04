@@ -50,8 +50,9 @@ public abstract class AbstractCache<T> {
                 return obj;
             }
 
-            // 尝试获取该资源
+            // 尝试获取该资源 从磁盘中加载资源到内存中
             if(maxResource > 0 && count == maxResource) {
+                // 如果缓存已满，抛出异常
                 lock.unlock();
                 throw Error.CacheFullException;
             }
@@ -60,7 +61,7 @@ public abstract class AbstractCache<T> {
             lock.unlock();
             break;
         }
-
+        // 尝试获取资源
         T obj = null;
         try {
             obj = getForCache(key);
@@ -71,7 +72,7 @@ public abstract class AbstractCache<T> {
             lock.unlock();
             throw e;
         }
-
+        // 将获取到的资源添加到缓存中，并设置引用计数为1
         lock.lock();
         getting.remove(key);
         cache.put(key, obj);
@@ -87,13 +88,13 @@ public abstract class AbstractCache<T> {
     protected void release(long key) {
         lock.lock();
         try {
-            int ref = references.get(key)-1;
+            int ref = references.get(key) - 1;
             if(ref == 0) {
-                T obj = cache.get(key);
-                releaseForCache(obj);
-                references.remove(key);
-                cache.remove(key);
-                count --;
+                T obj = cache.get(key);   // 从缓存中获取资源
+                releaseForCache(obj);    // 处理资源的释放
+                references.remove(key); // 从引用计数的映射中移除资源
+                cache.remove(key);     // 从缓存中移除资源
+                count --;             // 将缓存中的资源计数减一
             } else {
                 references.put(key, ref);
             }
