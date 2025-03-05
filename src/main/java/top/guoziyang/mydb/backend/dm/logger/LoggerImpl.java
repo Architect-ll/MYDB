@@ -64,48 +64,56 @@ public class LoggerImpl implements Logger {
         } catch (IOException e) {
             Panic.panic(e);
         }
-        if(size < 4) {
+        if(size < 4) {                                   // 若文件大小小于4，证明日志文件创建出现问题
             Panic.panic(Error.BadLogFileException);
         }
 
-        ByteBuffer raw = ByteBuffer.allocate(4);
+        ByteBuffer raw = ByteBuffer.allocate(4); // 创建一个容量为4的ByteBuffer
         try {
             fc.position(0);
-            fc.read(raw);
+            fc.read(raw);                                 // 读取四字节大小的内容
         } catch (IOException e) {
             Panic.panic(e);
         }
-        int xChecksum = Parser.parseInt(raw.array());
+        int xChecksum = Parser.parseInt(raw.array());     // 将其转换成int整数
         this.fileSize = size;
-        this.xChecksum = xChecksum;
+        this.xChecksum = xChecksum;                       // 赋值给当前对象
 
-        checkAndRemoveTail();
+        checkAndRemoveTail();                             //检查是否需要去除BadTail
     }
 
     // 检查并移除bad tail
     private void checkAndRemoveTail() {
-        rewind();
-
+        // 将当前位置重置为文件的开始位置
+        // [XChecksum][Log1][Log2]...[LogN][BadTail] --> [Log1][Log2]...[LogN][BadTail]
+        rewind();  // 向后移动四个字节
+        // 初始化校验和为 0
         int xCheck = 0;
         while(true) {
+            // 读取下一条日志
             byte[] log = internNext();
-            if(log == null) break;
+            // 如果读取到的日志为 null，说明没有更多的日志可以读取，跳出循环
+            if (log == null) break;
+            // 计算校验和
             xCheck = calChecksum(xCheck, log);
         }
+        // 比较计算得到的校验和和文件中的校验和，如果不相等，说明日志已经被破坏，抛出异常
         if(xCheck != xChecksum) {
             Panic.panic(Error.BadLogFileException);
         }
-
+        // 尝试将文件截断到当前位置，移除 "bad tail"
         try {
             truncate(position);
         } catch (Exception e) {
             Panic.panic(e);
         }
+        // 尝试将文件的读取位置设置为当前位置
         try {
             file.seek(position);
         } catch (IOException e) {
             Panic.panic(e);
         }
+        // 将当前位置重置为文件的开始位置  4字节处
         rewind();
     }
 
@@ -122,20 +130,21 @@ public class LoggerImpl implements Logger {
         ByteBuffer buf = ByteBuffer.wrap(log);
         lock.lock();
         try {
-            fc.position(fc.size());
+            fc.position(fc.size()); // 这里就是移动到文件末尾
             fc.write(buf);
         } catch(IOException e) {
             Panic.panic(e);
         } finally {
             lock.unlock();
         }
+        // 更新总校验值
         updateXChecksum(log);
     }
 
     private void updateXChecksum(byte[] log) {
         this.xChecksum = calChecksum(this.xChecksum, log);
         try {
-            fc.position(0);
+            fc.position(0); // 切换到文件开头位置
             fc.write(ByteBuffer.wrap(Parser.int2Byte(xChecksum)));
             fc.force(false);
         } catch(IOException e) {
@@ -144,9 +153,12 @@ public class LoggerImpl implements Logger {
     }
 
     private byte[] wrapLog(byte[] data) {
+        // 使用 calChecksum 方法计算数据的校验和，然后将校验和转换为字节数组
         byte[] checksum = Parser.int2Byte(calChecksum(0, data));
+        // 将数据的长度转换为字节数组
         byte[] size = Parser.int2Byte(data.length);
-        return Bytes.concat(size, checksum, data);
+        // 使用 Bytes.concat 方法将 size、checksum 和 data 连接成一个新的字节数组，然后返回这个字节数组
+        return Bytes.concat(size, checksum, data);  // 大小 + 校验和 + 数据
     }
 
     @Override
@@ -160,7 +172,7 @@ public class LoggerImpl implements Logger {
     }
 
     private byte[] internNext() {
-        if(position + OF_DATA >= fileSize) {
+        if(position + OF_DATA >= fileSize) { // 越界，数据错误
             return null;
         }
         ByteBuffer tmp = ByteBuffer.allocate(4);
@@ -171,25 +183,29 @@ public class LoggerImpl implements Logger {
             Panic.panic(e);
         }
         int size = Parser.parseInt(tmp.array());
-        if(position + size + OF_DATA > fileSize) {
+        if(position + size + OF_DATA > fileSize) { // 越界，数据错误
             return null;
         }
-
+        // 读取整条日志数据
         ByteBuffer buf = ByteBuffer.allocate(OF_DATA + size);
         try {
             fc.position(position);
+            // 读取整条日志 [Size][Checksum][Data]
             fc.read(buf);
         } catch(IOException e) {
             Panic.panic(e);
         }
 
-        byte[] log = buf.array();
-        int checkSum1 = calChecksum(0, Arrays.copyOfRange(log, OF_DATA, log.length));
-        int checkSum2 = Parser.parseInt(Arrays.copyOfRange(log, OF_CHECKSUM, OF_DATA));
+        byte[] log = buf.array();  // 该条日志大小（） + 数据
+        int checkSum1 = calChecksum(0, Arrays.copyOfRange(log, OF_DATA, log.length)); // 该条数据
+        int checkSum2 = Parser.parseInt(Arrays.copyOfRange(log, OF_CHECKSUM, OF_DATA));    // 该条数据的校验和
+        // 比较计算得到的校验和和日志中的校验和，如果不相等，说明日志已经被破坏，返回 null
         if(checkSum1 != checkSum2) {
             return null;
         }
+        // 更新当前位置
         position += log.length;
+        // 返回读取到的日志
         return log;
     }
 

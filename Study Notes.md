@@ -34,5 +34,14 @@ AbstractCache
 
 不太理解数据库崩溃时<u>recoverInsert()</u>和<u>recoverUpdate()</u>起到的具体作用。
 
-# D4.
+# D4.DM
 
+数据恢复策略
+
+需要mydb.xid和mydb.log文件一起配合
+
+其中mydb.xid标识了事务的具体id以及操作类型（正在进行，已提交，已撤销）
+
+mydb.log文件标识了具体事务操作的数据（[size,cheackSum,data]）
+
+这里最后存储的日志文件具体内容还有待考察
