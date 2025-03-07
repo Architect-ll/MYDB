@@ -3,12 +3,16 @@ package top.guoziyang.mydb.backend.vm;
 import top.guoziyang.mydb.backend.tm.TransactionManager;
 
 public class Visibility {
-    
+
     public static boolean isVersionSkip(TransactionManager tm, Transaction t, Entry e) {
+        // 获取条目的删除版本号
         long xmax = e.getXmax();
-        if(t.level == 0) {
+        // 如果事务的隔离级别为0，即读未提交，那么不跳过该版本，返回false
+        if (t.level == 0) {
             return false;
         } else {
+            // 如果事务的隔离级别不为0，那么检查删除版本是否已提交，并且删除版本号大于事务的ID或者删除版本号在事务的快照中
+            // 如果满足上述条件，那么跳过该版本，返回true
             return tm.isCommitted(xmax) && (xmax > t.xid || t.isInSnapshot(xmax));
         }
     }
