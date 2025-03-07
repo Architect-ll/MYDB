@@ -58,3 +58,40 @@ DataManager（DM）是数据库管理系统中的一层，主要负责底层数�
 6. **文件初始化和校验**：DataManager 在创建和打开数据库文件时，会进行文件的初始化和校验操作，以确保文件的正确性和完整性，同时在文件关闭时会执行相应的清理操作。
 7. **资源管理和释放**：DataManager 在关闭时会执行资源的释放和清理操作，包括缓存和日志的关闭，以及页面的释放和页面索引的清理等。
 
+# D6.VM
+
+Entry格式(xmin, xmax, data)，其中xmin是创建该条数据记录的事务，xmax是修改或者删除该条记录的事务
+
+当发生读写冲突时，通过限制读事务只能读取到该条数据记录已经提交的版本达到**读已提交隔离级别**
+
+```
+(XMIN == Ti and                             // 由Ti创建且
+    XMAX == NULL                            // 还未被删除
+)
+or                                          // 或
+(XMIN is commited and                       // 由一个已提交的事务创建且
+    (XMAX == NULL or                        // 尚未删除或
+    (XMAX != Ti and XMAX is not commited)   // 由一个未提交的事务删除
+))
+```
+
+可重复读隔离级别指的是在一个事务的执行过程中先后对同一条数据记录的访问结果是相同的（不会因为在前后时间段中别的事务对该条记录的修改而产生前后不一致的现象）。
+
+为此，需要在该条事务的执行过程中记录下处于**active 状态**的事务。可重复读的判断逻辑为：
+
+```
+(XMIN == Ti and                 // 由Ti创建且
+ (XMAX == NULL                  // 尚未被删除
+))
+or                              // 或
+(XMIN is commited and           // 由一个已提交的事务创建且
+ XMIN < XID and                 // 这个事务小于Ti且
+ XMIN is not in SP(Ti) and      // 这个事务在Ti开始前提交且
+ (XMAX == NULL or               // 尚未被删除或
+  (XMAX != Ti and               // 由其他事务删除但是
+   (XMAX is not commited or     // 这个事务尚未提交或
+XMAX > Ti or                    // 这个事务在Ti开始之后才开始或
+XMAX is in SP(Ti)               // 这个事务在Ti开始前还未提交
+))))
+```
+

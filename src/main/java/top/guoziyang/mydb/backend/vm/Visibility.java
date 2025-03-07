@@ -21,20 +21,31 @@ public class Visibility {
         }
     }
 
+    // 用来在读提交的隔离级别下，某个记录是否对事务t可见
     private static boolean readCommitted(TransactionManager tm, Transaction t, Entry e) {
+        // 获取事务的ID
         long xid = t.xid;
+        // 获取记录的创建版本号
         long xmin = e.getXmin();
+        // 获取记录的删除版本号
         long xmax = e.getXmax();
-        if(xmin == xid && xmax == 0) return true;
+        // 如果记录的创建版本号等于事务的ID并且记录未被删除，则返回true
+        if (xmin == xid && xmax == 0) return true;
 
-        if(tm.isCommitted(xmin)) {
-            if(xmax == 0) return true;
-            if(xmax != xid) {
-                if(!tm.isCommitted(xmax)) {
+        // 如果记录的创建版本已经提交
+        if (tm.isCommitted(xmin)) {
+            // 如果记录未被删除，则返回true
+            if (xmax == 0) return true;
+            // 如果记录的删除版本号不等于事务的ID
+            if (xmax != xid) {
+                // 如果记录的删除版本未提交，则返回true
+                // 因为没有提交，代表该数据还是上一个版本可见的
+                if (!tm.isCommitted(xmax)) {
                     return true;
                 }
             }
         }
+        // 其他情况返回false
         return false;
     }
 
