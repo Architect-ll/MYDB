@@ -15,6 +15,12 @@ import top.guoziyang.mydb.backend.im.Node.SearchNextRes;
 import top.guoziyang.mydb.backend.tm.TransactionManagerImpl;
 import top.guoziyang.mydb.backend.utils.Parser;
 
+/*
+    由于 B+ 树在插入删除时，会动态调整，根节点不是固定节点，
+    于是设置一个 bootDataItem，该 DataItem 中存储了根节点的 UID。
+    可以注意到，IM 在操作 DM 时，使用的事务都是 SUPER_XID。
+ */
+
 public class BPlusTree {
     DataManager dm;
     long bootUid;
@@ -146,6 +152,7 @@ public class BPlusTree {
             InsertAndSplitRes iasr = node.insertAndSplit(uid, key);
             node.release();
             if(iasr.siblingUid != 0) {
+                // 当返回的兄弟节点id != 0时，说明在当前节点中无法找到合适的位置进行插入，需要移动到下一节点继续搜索
                 nodeUid = iasr.siblingUid;
             } else {
                 InsertRes res = new InsertRes();
