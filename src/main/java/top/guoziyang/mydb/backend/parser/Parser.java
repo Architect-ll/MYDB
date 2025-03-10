@@ -18,15 +18,19 @@ import top.guoziyang.mydb.backend.parser.statement.Where;
 import top.guoziyang.mydb.common.Error;
 
 public class Parser {
+    /**
+     * 解析输入的字节流，根据不同的标记（token）调用不同的解析方法，生成对应的语句对象。
+     */
     public static Object Parse(byte[] statement) throws Exception {
-        Tokenizer tokenizer = new Tokenizer(statement);
-        String token = tokenizer.peek();
-        tokenizer.pop();
+        Tokenizer tokenizer = new Tokenizer(statement);  // 创建一个Tokenizer对象，用于获取标记
+        String token = tokenizer.peek();  // 获取下一个标记
+        tokenizer.pop();  // 跳过这个标记
 
-        Object stat = null;
-        Exception statErr = null;
+        Object stat = null;  // 用于存储生成的语句对象
+        Exception statErr = null;  // 用于存储错误信息
         try {
-            switch(token) {
+            // 根据标记的值，调用对应的解析方法
+            switch (token) {
                 case "begin":
                     stat = parseBegin(tokenizer);
                     break;
@@ -58,25 +62,28 @@ public class Parser {
                     stat = parseShow(tokenizer);
                     break;
                 default:
-                    throw Error.InvalidCommandException;
+                    throw Error.InvalidCommandException;  // 如果标记的值不符合预期，抛出异常
             }
-        } catch(Exception e) {
-            statErr = e;
+        } catch (Exception e) {
+            statErr = e;  // 如果在解析过程中出现错误，保存错误信息
         }
         try {
-            String next = tokenizer.peek();
-            if(!"".equals(next)) {
+            String next = tokenizer.peek();  // 获取下一个标记
+            // 如果还有未处理的标记，那么抛出异常
+            if (!"".equals(next)) {
                 byte[] errStat = tokenizer.errStat();
                 statErr = new RuntimeException("Invalid statement: " + new String(errStat));
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             byte[] errStat = tokenizer.errStat();
             statErr = new RuntimeException("Invalid statement: " + new String(errStat));
         }
-        if(statErr != null) {
+        // 如果存在错误，抛出异常
+        if (statErr != null) {
             throw statErr;
         }
+        // 返回生成的语句对象
         return stat;
     }
 
@@ -138,25 +145,26 @@ public class Parser {
         return delete;
     }
 
+    // insert into student values 5 "Zhang Yuanjia" 22
     private static Insert parseInsert(Tokenizer tokenizer) throws Exception {
         Insert insert = new Insert();
-
+        //比如解析insert的下一句一定得是into
         if(!"into".equals(tokenizer.peek())) {
             throw Error.InvalidCommandException;
         }
         tokenizer.pop();
-
+        //解析出表名，不满足规则报错
         String tableName = tokenizer.peek();
         if(!isName(tableName)) {
             throw Error.InvalidCommandException;
         }
         insert.tableName = tableName;
         tokenizer.pop();
-
+        //下一个字段必须是values
         if(!"values".equals(tokenizer.peek())) {
             throw Error.InvalidCommandException;
         }
-
+        //要插入的值
         List<String> values = new ArrayList<>();
         while(true) {
             tokenizer.pop();

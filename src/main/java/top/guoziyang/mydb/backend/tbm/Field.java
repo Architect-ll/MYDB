@@ -20,21 +20,34 @@ import top.guoziyang.mydb.common.Error;
  * 如果field无索引，IndexUid为0
  */
 public class Field {
+    // 唯一标识符，用于标识每个Field对象
     long uid;
+    // Field对象所属的表
     private Table tb;
+    // 字段名，用于标识表中的每个字段名称
     String fieldName;
+    // 字段类型，用于标识字段的数据类型
     String fieldType;
+    // 索引，用于标识字段是否有索引，0表示没有索引
     private long index;
+    // B+树，用于存储索引，如果字段有索引，这个B+树会被加载
     private BPlusTree bt;
 
+    /**
+     * 从持久化存储中加载一个Field对象。
+     */
     public static Field loadField(Table tb, long uid) {
-        byte[] raw = null;
+        byte[] raw = null;  // 用于存储从持久化存储中读取的原始字节数据
         try {
-            raw = ((TableManagerImpl)tb.tbm).vm.read(TransactionManagerImpl.SUPER_XID, uid);
+            // 从持久化存储中读取uid对应的原始字节数据
+            raw = ((TableManagerImpl) tb.tbm).vm.read(TransactionManagerImpl.SUPER_XID, uid);
         } catch (Exception e) {
+            // 如果读取过程中出现异常，调用Panic.panic方法处理异常
             Panic.panic(e);
         }
+        // 断言原始字节数据不为null，如果为null，那么会抛出AssertionError
         assert raw != null;
+        // 创建一个新的Field对象，并调用parseSelf方法解析原始字节数据
         return new Field(uid, tb).parseSelf(raw);
     }
 
@@ -50,43 +63,67 @@ public class Field {
         this.index = index;
     }
 
+    /**
+     * 解析原始字节数组并设置字段名、字段类型和索引
+     * @param raw 原始字节数组
+     * @return 返回当前Field对象
+     */
     private Field parseSelf(byte[] raw) {
-        int position = 0;
-        ParseStringRes res = Parser.parseString(raw);
-        fieldName = res.str;
-        position += res.next;
-        res = Parser.parseString(Arrays.copyOfRange(raw, position, raw.length));
-        fieldType = res.str;
-        position += res.next;
-        this.index = Parser.parseLong(Arrays.copyOfRange(raw, position, position+8));
-        if(index != 0) {
+        int position = 0;  // 初始化位置为0
+        ParseStringRes res = Parser.parseString(raw);  // 解析原始字节数组，获取字段名和下一个位置
+        fieldName = res.str;  // 设置字段名
+        position += res.next;  // 更新位置
+        res = Parser.parseString(Arrays.copyOfRange(raw, position, raw.length));  // 从新的位置开始解析原始字节数组，获取字段类型和下一个位置
+        fieldType = res.str;  // 设置字段类型
+        position += res.next;  // 更新位置
+
+        this.index = Parser.parseLong(Arrays.copyOfRange(raw, position, position + 8));  // 从新的位置开始解析原始字节数组，获取索引
+        if (index != 0) {  // 如果索引不为0，说明存在B+树索引
             try {
-                bt = BPlusTree.load(index, ((TableManagerImpl)tb.tbm).dm);
-            } catch(Exception e) {
-                Panic.panic(e);
+                bt = BPlusTree.load(index, ((TableManagerImpl) tb.tbm).dm);  // 加载B+树索引
+            } catch (Exception e) {
+                Panic.panic(e);  // 如果加载失败，抛出异常
             }
         }
-        return this;
+        return this;  // 返回当前Field对象
     }
 
+    /**
+     * 创建一个新的Field对象
+     * @param tb        表对象，Field对象所属的表
+     * @param xid       事务ID
+     * @param fieldName 字段名
+     * @param fieldType 字段类型
+     * @param indexed   是否创建索引
+     * @return 返回创建的Field对象
+     * @throws Exception 如果字段类型无效或者创建B+树索引失败，会抛出异常
+     */
     public static Field createField(Table tb, long xid, String fieldName, String fieldType, boolean indexed) throws Exception {
-        typeCheck(fieldType);
-        Field f = new Field(tb, fieldName, fieldType, 0);
-        if(indexed) {
-            long index = BPlusTree.create(((TableManagerImpl)tb.tbm).dm);
-            BPlusTree bt = BPlusTree.load(index, ((TableManagerImpl)tb.tbm).dm);
-            f.index = index;
-            f.bt = bt;
+        typeCheck(fieldType);  // 检查字段类型是否有效
+        Field f = new Field(tb, fieldName, fieldType, 0);  // 创建一个新的Field对象
+        if (indexed) {  // 如果需要创建索引
+            long index = BPlusTree.create(((TableManagerImpl) tb.tbm).dm);  // 创建一个新的B+树索引
+            BPlusTree bt = BPlusTree.load(index, ((TableManagerImpl) tb.tbm).dm);  // 加载这个B+树索引
+            f.index = index;  // 设置Field对象的索引
+            f.bt = bt;  // 设置Field对象的B+树
         }
-        f.persistSelf(xid);
-        return f;
+        f.persistSelf(xid);  // 将Field对象持久化到存储中
+        return f;  // 返回创建的Field对象
     }
 
+    /**
+     * 将当前Field对象持久化到存储中
+     */
     private void persistSelf(long xid) throws Exception {
+        // 将字段名转换为字节数组
         byte[] nameRaw = Parser.string2Byte(fieldName);
+        // 将字段类型转换为字节数组
         byte[] typeRaw = Parser.string2Byte(fieldType);
+        // 将索引转换为字节数组
         byte[] indexRaw = Parser.long2Byte(index);
-        this.uid = ((TableManagerImpl)tb.tbm).vm.insert(xid, Bytes.concat(nameRaw, typeRaw, indexRaw));
+        // 将字段名、字段类型和索引的字节数组合并，然后插入到持久化存储中
+        // 插入成功后，会返回一个唯一的uid，将这个uid设置为当前Field对象的uid
+        this.uid = ((TableManagerImpl) tb.tbm).vm.insert(xid, Bytes.concat(nameRaw, typeRaw, indexRaw));
     }
 
     private static void typeCheck(String fieldType) throws Exception {

@@ -110,3 +110,74 @@ XMAX is in SP(Ti)               // 这个事务在Ti开始前还未提交
 # D8.IM
 
 IM，即 Index Manager，索引管理器，为 MYDB 提供了基于 B+ 树的聚簇索引。目前 MYDB 只支持基于索引查找数据，不支持全表扫描。
+
+# D9.TBM
+
+Parser类实现SQL语句的结构化解析
+
+```sql
+<begin statement>
+    begin [isolation level (read committedrepeatable read)]
+        begin isolation level read committed
+
+<commit statement>
+    commit
+
+<abort statement>
+    abort
+
+<create statement>
+    create table <table name>
+    <field name> <field type>
+    <field name> <field type>
+    ...
+    <field name> <field type>
+    [(index <field name list>)]
+        create table students
+        id int32,
+        name string,
+        age int32,
+        (index id name)
+
+<drop statement>
+    drop table <table name>
+        drop table students
+
+<select statement>
+    select (*<field name list>) from <table name> [<where statement>]
+        select * from student where id = 1
+        select name from student where id > 1 and id < 4
+        select name, age, id from student where id = 12
+
+<insert statement>
+    insert into <table name> values <value list>
+        insert into student values 5 "Zhang Yuanjia" 22
+
+<delete statement>
+    delete from <table name> <where statement>
+        delete from student where name = "Zhang Yuanjia"
+
+<update statement>
+    update <table name> set <field name>=<value> [<where statement>]
+        update student set name = "ZYJ" where id = 5
+
+<where statement>
+    where <field name> (><=) <value> [(andor) <field name> (><=) <value>]
+        where age > 10 or age < 3
+
+<field name> <table name>
+    [a-zA-Z][a-zA-Z0-9_]*
+
+<field type>
+    int32 int64 string
+
+<value>
+    .*
+```
+
+启动信息管理
+
+* MYDB的启动信息存储在**bt**文件中，其中所需的信息只有一个，即头表的UID。
+* **Booter**类提供了**load**和**update**两个方法，用于加载和更新启动信息。
+* **update**方法在修改**bt**文件内容时，采取了一种保证原子性的策略，即先将内容写入一个临时文件**bt_tmp**中，然后通过操作系统的重命名操作将临时文件重命名为**bt**文件。
+* 通过这种方式，利用操作系统重命名文件的原子性，来确保对**bt**文件的修改操作是原子的，从而保证了启动信息的一致性和正确性。
