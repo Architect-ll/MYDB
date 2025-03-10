@@ -44,7 +44,7 @@ public class LoggerImpl implements Logger {
     private long fileSize;  // 初始化时记录，log操作不更新
     private int xChecksum;
 
-    LoggerImpl(RandomAccessFile raf, FileChannel fc) {
+    public LoggerImpl(RandomAccessFile raf, FileChannel fc) {
         this.file = raf;
         this.fc = fc;
         lock = new ReentrantLock();
@@ -57,7 +57,7 @@ public class LoggerImpl implements Logger {
         lock = new ReentrantLock();
     }
 
-    void init() {
+    public void init() {
         long size = 0;
         try {
             size = file.length();
