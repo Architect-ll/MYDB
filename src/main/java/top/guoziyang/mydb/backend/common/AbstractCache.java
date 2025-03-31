@@ -12,7 +12,7 @@ import top.guoziyang.mydb.common.Error;
  */
 public abstract class AbstractCache<T> {
     private HashMap<Long, T> cache;                     // 实际缓存的数据
-    private HashMap<Long, Integer> references;          // 元素的引用个数
+    private HashMap<Long, Integer> references;          // 资源的引用个数
     private HashMap<Long, Boolean> getting;             // 正在获取某资源的线程
 
     private int maxResource;                            // 缓存的最大缓存资源数
@@ -27,6 +27,12 @@ public abstract class AbstractCache<T> {
         lock = new ReentrantLock();
     }
 
+    /** 尝试获取某一资源
+     *
+     * @param key
+     * @return
+     * @throws Exception
+     */
     protected T get(long key) throws Exception {
         while(true) {
             lock.lock();
@@ -34,7 +40,7 @@ public abstract class AbstractCache<T> {
                 // 请求的资源正在被其他线程获取
                 lock.unlock();
                 try {
-                    Thread.sleep(1);
+                    Thread.sleep(1);  // 等待后再尝试获取
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     continue;

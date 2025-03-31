@@ -17,8 +17,8 @@ public class Client {
     // 否则，返回响应的Package对象中的数据
     public byte[] execute(byte[] stat) throws Exception {
         Package pkg = new Package(stat, null);
-        Package resPkg = rt.roundTrip(pkg);
-        if(resPkg.getErr() != null) {
+        Package resPkg = rt.roundTrip(pkg);  // 过滤多余的空格
+        if(resPkg.getErr() != null) {        // 捕获异常
             throw resPkg.getErr();
         }
         return resPkg.getData();

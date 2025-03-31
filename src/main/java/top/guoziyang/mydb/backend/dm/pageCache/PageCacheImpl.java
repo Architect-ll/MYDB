@@ -63,14 +63,14 @@ public class PageCacheImpl extends AbstractCache<Page> implements PageCache {
         // 计算页码对应的偏移量
         long offset = PageCacheImpl.pageOffset(pgno);
 
-        // 分配一个大小为PAGE_SIZE的ByteBuffer
+        // 分配一个大小为 PAGE_SIZE 的 ByteBuffer
         ByteBuffer buf = ByteBuffer.allocate(PAGE_SIZE);
         // 锁定文件，确保线程安全
         fileLock.lock();
         try {
             // 设置文件通道的位置为计算出的偏移量
             fc.position(offset);
-            // 从文件通道读取数据到ByteBuffer
+            // 从文件通道读取一页数据到ByteBuffer
             fc.read(buf);
         } catch (IOException e) {
             // 如果发生异常，调用Panic.panic方法处理

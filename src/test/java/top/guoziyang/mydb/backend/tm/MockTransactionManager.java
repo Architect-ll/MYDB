@@ -30,5 +30,8 @@ public class MockTransactionManager implements TransactionManager {
 
     @Override
     public void close() {}
-    
+
+    @Override
+    public void readeXidCount() {}
+
 }

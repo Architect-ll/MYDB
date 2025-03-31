@@ -170,4 +170,29 @@ public class TransactionManagerImpl implements TransactionManager {
         }
     }
 
+    @Override
+    public void readeXidCount() {
+        //
+        long fileLen = 0;
+        try {
+            fileLen = file.length();
+        } catch (IOException e1) {
+            Panic.panic(Error.BadXIDFileException);
+        }
+        if(fileLen < LEN_XID_HEADER_LENGTH) {
+            Panic.panic(Error.BadXIDFileException);
+        }
+
+        ByteBuffer buf = ByteBuffer.allocate(LEN_XID_HEADER_LENGTH);
+        try {
+            fc.position(0);
+            fc.read(buf);
+        } catch (IOException e) {
+            Panic.panic(e);
+        }
+        this.xidCounter = Parser.parseLong(buf.array());
+
+        System.out.println("当前事务数：" + this.xidCounter);
+    }
+
 }

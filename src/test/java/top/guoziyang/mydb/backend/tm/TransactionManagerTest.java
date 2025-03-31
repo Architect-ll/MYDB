@@ -1,7 +1,11 @@
 package top.guoziyang.mydb.backend.tm;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,6 +18,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.junit.After;
 import org.junit.Test;
+import top.guoziyang.mydb.backend.utils.Panic;
+import top.guoziyang.mydb.backend.utils.Parser;
 
 public class TransactionManagerTest {
 
@@ -27,6 +33,8 @@ public class TransactionManagerTest {
     private Map<Long, Byte> transMap;
     private CountDownLatch cdl;
 
+    // XID文件头长度
+    static final int LEN_XID_HEADER_LENGTH = 8;
     /*
      * 该测试类用于验证 TransactionManager 在多线程并发场景下的正确性。
      * 主要测试点包括：
@@ -60,6 +68,9 @@ public class TransactionManagerTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        tmger.readeXidCount();
+
 //        assert new File("/tmp/tranmger_test.xid").delete();
 //        assert new File(path + ".xid").delete();
         tearDown(path);

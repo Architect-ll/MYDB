@@ -18,7 +18,9 @@ public interface TransactionManager {
     boolean isCommitted(long xid); // 查询一个事务的状态是否是已提交
     boolean isAborted(long xid); // 查询一个事务的状态是否是已取消
     void close(); // 关闭TM
+    void readeXidCount();
 
+    // 当前不存在 .xid 文件 创建文件 并创建连接
     public static TransactionManagerImpl create(String path) {
         File f = new File(path+TransactionManagerImpl.XID_SUFFIX);
         try {
@@ -53,8 +55,9 @@ public interface TransactionManager {
         return new TransactionManagerImpl(raf, fc);
     }
 
+    // 已存在 .xid 文件 创建管道连接
     public static TransactionManagerImpl open(String path) {
-        File f = new File(path+TransactionManagerImpl.XID_SUFFIX);
+        File f = new File(path + TransactionManagerImpl.XID_SUFFIX);
         if(!f.exists()) {
             Panic.panic(Error.FileNotExistsException);
         }
