@@ -105,9 +105,9 @@ public class PageCacheImpl extends AbstractCache<Page> implements PageCache {
         fileLock.lock(); // 加锁，确保线程安全
         try {
             ByteBuffer buf = ByteBuffer.wrap(pg.getData()); // 将Page的数据包装成ByteBuffer
-            fc.position(offset); // 设置文件通道的位置
-            fc.write(buf); // 将数据写入到文件中
-            fc.force(false); // 强制将数据从操作系统的缓存刷新到磁盘
+            fc.position(offset);       // 设置文件通道的位置
+            fc.write(buf);             // 将数据写入到文件中
+            fc.force(false);  // 强制将数据从操作系统的缓存刷新到磁盘
         } catch (IOException e) {
             Panic.panic(e); // 如果发生异常，调用Panic.panic方法处理
         } finally {

@@ -19,7 +19,7 @@ public interface Logger {
     void close();
 
     public static Logger create(String path) {
-        File f = new File(path+LoggerImpl.LOG_SUFFIX);
+        File f = new File(path + LoggerImpl.LOG_SUFFIX);
         try {
             if(!f.createNewFile()) {
                 Panic.panic(Error.FileExistsException);

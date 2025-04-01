@@ -175,6 +175,7 @@ public class LoggerImpl implements Logger {
         if(position + OF_DATA >= fileSize) { // 越界，数据错误
             return null;
         }
+        // 用于读取[size]
         ByteBuffer tmp = ByteBuffer.allocate(4);
         try {
             fc.position(position);
@@ -182,11 +183,13 @@ public class LoggerImpl implements Logger {
         } catch(IOException e) {
             Panic.panic(e);
         }
+        // 判断是否越界
         int size = Parser.parseInt(tmp.array());
         if(position + size + OF_DATA > fileSize) { // 越界，数据错误
             return null;
         }
-        // 读取整条日志数据
+
+        // 读取整条日志数据 [Size][Checksum][Data]
         ByteBuffer buf = ByteBuffer.allocate(OF_DATA + size);
         try {
             fc.position(position);
@@ -197,7 +200,7 @@ public class LoggerImpl implements Logger {
         }
 
         byte[] log = buf.array();  // 该条日志大小（） + 数据
-        int checkSum1 = calChecksum(0, Arrays.copyOfRange(log, OF_DATA, log.length)); // 该条数据
+        int checkSum1 = calChecksum(0, Arrays.copyOfRange(log, OF_DATA, log.length)); // 计算该条数据校验和
         int checkSum2 = Parser.parseInt(Arrays.copyOfRange(log, OF_CHECKSUM, OF_DATA));    // 该条数据的校验和
         // 比较计算得到的校验和和日志中的校验和，如果不相等，说明日志已经被破坏，返回 null
         if(checkSum1 != checkSum2) {

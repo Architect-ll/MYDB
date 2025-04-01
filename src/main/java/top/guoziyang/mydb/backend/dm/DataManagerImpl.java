@@ -74,6 +74,7 @@ public class DataManagerImpl extends AbstractCache<DataItem> implements DataMana
                 pIndex.add(newPgno, PageX.MAX_FREE_SPACE);
             }
         }
+
         // 如果还是没有找到合适的页面，抛出异常
         if(pi == null) {
             throw Error.DatabaseBusyException;

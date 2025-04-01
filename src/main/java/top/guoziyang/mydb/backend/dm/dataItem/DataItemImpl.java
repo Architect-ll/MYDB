@@ -45,7 +45,7 @@ public class DataItemImpl implements DataItem {
 
     @Override
     public SubArray data() {
-        return new SubArray(raw.raw, raw.start+OF_DATA, raw.end);
+        return new SubArray(raw.raw, raw.start + OF_DATA, raw.end);
     }
 
     // 在修改数据项之前调用，用于锁定数据项并保存原始数据到oldRaw

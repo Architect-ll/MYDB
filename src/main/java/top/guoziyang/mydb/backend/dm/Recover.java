@@ -25,6 +25,12 @@ public class Recover {
     private static final byte LOG_TYPE_INSERT = 0;
     private static final byte LOG_TYPE_UPDATE = 1;
 
+    // updateLog:
+    // [LogType] [XID] [UID] [OldRaw] [NewRaw]
+
+    // insertLog:
+    // [LogType] [XID] [Pgno] [Offset] [Raw]
+
     private static final int REDO = 0;
     private static final int UNDO = 1;
 
@@ -134,6 +140,7 @@ public class Recover {
                     if (!logCache.containsKey(xid)) {
                         logCache.put(xid, new ArrayList<>());
                     }
+                    // 将事务id对应的log添加到集合中
                     logCache.get(xid).add(log);
                 }
             } else {
@@ -175,7 +182,7 @@ public class Recover {
         return log[0] == LOG_TYPE_INSERT;
     }
 
-    // [LogType] [XID] [UID] [OldRaw] [NewRaw]
+    // 日志数据 [LogType] [XID] [UID] [OldRaw] [NewRaw]
     private static final int OF_TYPE = 0;
     private static final int OF_XID = OF_TYPE+1;
     private static final int OF_UPDATE_UID = OF_XID+8;

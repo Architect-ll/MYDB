@@ -40,7 +40,7 @@ public interface DataItem {
         short size = Parser.parseShort(Arrays.copyOfRange(raw, offset+DataItemImpl.OF_SIZE, offset+DataItemImpl.OF_DATA));
         short length = (short)(size + DataItemImpl.OF_DATA);
         long uid = Types.addressToUid(pg.getPageNumber(), offset);
-        return new DataItemImpl(new SubArray(raw, offset, offset+length), new byte[length], pg, uid, dm);
+        return new DataItemImpl(new SubArray(raw, offset, offset + length), new byte[length], pg, uid, dm);
     }
 
     public static void setDataItemRawInvalid(byte[] raw) {

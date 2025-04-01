@@ -7,12 +7,12 @@ public class Visibility {
     public static boolean isVersionSkip(TransactionManager tm, Transaction t, Entry e) {
         // 获取条目的删除版本号
         long xmax = e.getXmax();
-        // 如果事务的隔离级别为0，即读未提交，那么不跳过该版本，返回false
+        // 如果事务的隔离级别为0，即读未提交，那么跳过该版本，返回false
         if (t.level == 0) {
             return false;
         } else {
-            // 如果事务的隔离级别不为0，那么检查删除版本是否已提交，并且删除版本号大于事务的ID或者删除版本号在事务的快照中
-            // 如果满足上述条件，那么跳过该版本，返回true
+            // 如果事务的隔离级别不为0，那么检查删除版本是否已提交，并且删除版本号大于事务的ID（不可见）或者删除版本号在事务的快照中（活跃）
+            // 如果满足上述条件，那么不跳过该版本，返回true
             return tm.isCommitted(xmax) && (xmax > t.xid || t.isInSnapshot(xmax));
         }
     }
@@ -38,7 +38,7 @@ public class Visibility {
 
         // 如果记录的创建版本已经提交
         if (tm.isCommitted(xmin)) {
-            // 如果记录未被删除，则返回true
+            // 如果记录未被删除（首次创建），则返回true
             if (xmax == 0) return true;
             // 如果记录的删除版本号不等于事务的ID
             if (xmax != xid) {

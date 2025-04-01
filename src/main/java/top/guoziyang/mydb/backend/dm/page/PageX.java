@@ -27,11 +27,11 @@ public class PageX {
         System.arraycopy(Parser.short2Byte(ofData), 0, raw, OF_FREE, OF_DATA);
     }
 
-    // 获取pg的FSO
+    // 获取pg的FSO (剩余存储空间)
     public static short getFSO(Page pg) {
         return getFSO(pg.getData());
     }
-
+    // 获取后两个字节
     private static short getFSO(byte[] raw) {
         return Parser.parseShort(Arrays.copyOfRange(raw, 0, 2));
     }
