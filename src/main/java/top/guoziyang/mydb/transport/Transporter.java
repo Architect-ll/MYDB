@@ -51,4 +51,8 @@ public class Transporter {
     private byte[] hexDecode(String buf) throws DecoderException {
         return Hex.decodeHex(buf);
     }
+
+    public Socket getSocket() {
+        return socket;
+    }
 }

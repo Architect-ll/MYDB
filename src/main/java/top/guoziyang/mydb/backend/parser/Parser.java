@@ -182,9 +182,9 @@ public class Parser {
 
     private static Select parseSelect(Tokenizer tokenizer) throws Exception {
         Select read = new Select();
-
         List<String> fields = new ArrayList<>();
         String asterisk = tokenizer.peek();
+
         if("*".equals(asterisk)) {
             fields.add(asterisk);
             tokenizer.pop();
@@ -203,11 +203,13 @@ public class Parser {
                 }
             }
         }
+
         read.fields = fields.toArray(new String[fields.size()]);
 
         if(!"from".equals(tokenizer.peek())) {
             throw Error.InvalidCommandException;
         }
+
         tokenizer.pop();
 
         String tableName = tokenizer.peek();

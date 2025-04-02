@@ -70,7 +70,7 @@ public class TableManagerImpl implements TableManager {
     @Override
     public BeginRes begin(Begin begin) {
         BeginRes res = new BeginRes();
-        int level = begin.isRepeatableRead?1:0;
+        int level = begin.isRepeatableRead ? 1 : 0;
         res.xid = vm.begin(level);
         res.result = "begin".getBytes();
         return res;
@@ -144,6 +144,7 @@ public class TableManagerImpl implements TableManager {
         table.insert(xid, insert);
         return "insert".getBytes();
     }
+
     @Override
     public byte[] read(long xid, Select read) throws Exception {
         lock.lock();
@@ -154,6 +155,7 @@ public class TableManagerImpl implements TableManager {
         }
         return table.read(xid, read).getBytes();
     }
+
     @Override
     public byte[] update(long xid, Update update) throws Exception {
         lock.lock();

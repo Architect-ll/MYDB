@@ -120,7 +120,7 @@ public class Node {
      * 获取第k个键的值
      */
     static long getRawKthKey(SubArray raw, int kth) {
-        int offset = raw.start+NODE_HEADER_SIZE+kth*(8*2)+8;
+        int offset = raw.start + NODE_HEADER_SIZE + kth * (8*2) + 8;
         return Parser.parseLong(Arrays.copyOfRange(raw.raw, offset, offset+8));
     }
 
@@ -256,7 +256,7 @@ public class Node {
     }
 
 
-    /*
+    /**
      leafSearchRange 方法在当前节点进行范围查找，范围是 [leftKey, rightKey]，
      这里约定如果 rightKey 大于等于该节点的最大的 key,
      则还同时返回兄弟节点的 UID，方便继续搜索下一个节点。（兄弟节点中可能还存在着符合要求的数据）
@@ -290,7 +290,7 @@ public class Node {
             }
             // 如果所有的键都被遍历过，获取兄弟节点的UID
             long siblingUid = 0;
-            if (kth == noKeys) {
+            if (kth == noKeys) {  // 说明遍历到了最后当前节点的最后一个key
                 siblingUid = getRawSibling(raw);
             }
             // 创建一个LeafSearchRangeRes对象，用于存储搜索结果
@@ -407,7 +407,7 @@ public class Node {
     }
 
     private boolean needSplit() {
-        return BALANCE_NUMBER*2 == getRawNoKeys(raw);
+        return BALANCE_NUMBER * 2 == getRawNoKeys(raw);
     }
 
     class SplitRes {

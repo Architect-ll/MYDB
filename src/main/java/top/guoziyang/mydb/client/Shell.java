@@ -1,5 +1,8 @@
 package top.guoziyang.mydb.client;
 
+import top.guoziyang.mydb.transport.Transporter;
+
+import java.net.SocketAddress;
 import java.util.Scanner;
 
 public class Shell {
@@ -17,7 +20,9 @@ public class Shell {
             // 循环接收用户的输入，直到用户输入"exit"或"quit"
             while (true) {
                 // 打印提示符
-                System.out.print(":> ");
+                Transporter transporter = client.getTransporter();
+                SocketAddress serverSocketAddress = transporter.getSocket().getRemoteSocketAddress();
+                System.out.print(serverSocketAddress + " mysql: ");
                 // 读取用户的输入
                 String statStr = sc.nextLine();
                 // 如果用户输入"exit"或"quit"，则退出循环

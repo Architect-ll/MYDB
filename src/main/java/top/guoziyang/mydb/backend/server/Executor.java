@@ -33,6 +33,7 @@ public class Executor {
     public byte[] execute(byte[] sql) throws Exception {
         System.out.println("Execute: " + new String(sql));
         Object stat = Parser.Parse(sql);
+
         if(Begin.class.isInstance(stat)) {
             if(xid != 0) {
                 throw Error.NestedTransactionException;
@@ -62,11 +63,13 @@ public class Executor {
     private byte[] execute2(Object stat) throws Exception {
         boolean tmpTransaction = false;
         Exception e = null;
+
         if(xid == 0) {
             tmpTransaction = true;
             BeginRes r = tbm.begin(new Begin());
             xid = r.xid;
         }
+
         try {
             byte[] res = null;
             if(Show.class.isInstance(stat)) {

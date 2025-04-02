@@ -125,7 +125,7 @@ public class Tokenizer {
             }
             // 如果下一个字节是字母、数字或下划线，那么将这个字节添加到StringBuilder中
             sb.append(new String(new byte[]{b}));
-            popByte();  // 跳过这个字节
+            popByte();  // 跳过这个字节 继续寻找后面的
         }
     }
 
@@ -142,7 +142,7 @@ public class Tokenizer {
      */
     private String nextQuoteState() throws Exception {
         byte quote = peekByte();  // 获取下一个字节，这应该是一个引号
-        popByte();  // 跳过这个引号
+        popByte();                // 跳过这个引号
         StringBuilder sb = new StringBuilder();  // 创建一个StringBuilder，用于存储被引号包围的字符串
         while (true) {
             Byte b = peekByte();  // 获取下一个字节

@@ -28,4 +28,9 @@ public class Packager {
     public void close() throws Exception {
         transpoter.close();
     }
+
+    public Transporter getTransporter() {
+        return transpoter;
+    }
+
 }

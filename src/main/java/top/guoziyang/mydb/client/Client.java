@@ -2,14 +2,19 @@ package top.guoziyang.mydb.client;
 
 import top.guoziyang.mydb.transport.Package;
 import top.guoziyang.mydb.transport.Packager;
+import top.guoziyang.mydb.transport.Transporter;
+
+import java.net.Socket;
 
 public class Client {
     // RoundTripper实例，用于处理请求的往返传输
     private RoundTripper rt;
+    private Transporter trp;
 
     // 构造函数，接收一个Packager对象作为参数，并创建一个新的RoundTripper实例
     public Client(Packager packager) {
         this.rt = new RoundTripper(packager);
+        trp = packager.getTransporter();
     }
 
     // execute方法，接收一个字节数组作为参数，将其封装为一个Package对象，并通过RoundTripper发送
@@ -29,6 +34,11 @@ public class Client {
         try {
             rt.close();
         } catch (Exception e) {
+
         }
+    }
+
+    public Transporter getTransporter() {
+        return trp;
     }
 }
